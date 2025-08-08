@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: system-ui; max-width: 1000px; margin: 2rem auto; padding: 0 1rem; }
+        .header { border-bottom: 1px solid #eee; padding-bottom: 1rem; margin-bottom: 2rem; }
+        .form { margin-bottom: 2rem; padding: 1rem; border: 1px solid #ddd; border-radius: 4px; }
+        .item { padding: 0.5rem; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; }
+        input, button { padding: 0.5rem; margin: 0.25rem; }
+        button { cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>{{title}}</h1>
+        <p>CRUD operations with local storage</p>
+    </div>
+    
+    <div class="form">
+        <input type="text" id="itemInput" placeholder="Add new item...">
+        <button onclick="addItem()">Add</button>
+    </div>
+    
+    <div id="items"></div>
+    
+    <script>
+        let items = JSON.parse(localStorage.getItem('{{name}}-items') || '[]');
+        
+        function render() {
+            const container = document.getElementById('items');
+            container.innerHTML = items.map((item, i) => 
+                `<div class="item">
+                    <span>${item}</span>
+                    <button onclick="removeItem(${i})">Delete</button>
+                </div>`
+            ).join('');
+        }
+        
+        function addItem() {
+            const input = document.getElementById('itemInput');
+            if (input.value.trim()) {
+                items.push(input.value.trim());
+                localStorage.setItem('{{name}}-items', JSON.stringify(items));
+                input.value = '';
+                render();
+            }
+        }
+        
+        function removeItem(index) {
+            items.splice(index, 1);
+            localStorage.setItem('{{name}}-items', JSON.stringify(items));
+            render();
+        }
+        
+        document.getElementById('itemInput').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addItem();
+        });
+        
+        render();
+    </script>
+</body>
+</html>
