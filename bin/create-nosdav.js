@@ -42,6 +42,7 @@ program
     console.log('  - basic (default)');
     console.log('  - crud');
     console.log('  - dashboard');
+    console.log('  - preact-todo');
   });
 
 program.parse(process.argv);
