@@ -1,8 +1,8 @@
-const fs = require('fs-extra');
-const path = require('path');
-const chalk = require('chalk');
-const inquirer = require('inquirer');
-const crypto = require('crypto');
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
+import inquirer from 'inquirer';
+import crypto from 'crypto';
 
 async function initProfile(name, options) {
   const { dir } = options;
@@ -117,4 +117,4 @@ async function initProfile(name, options) {
   }
 }
 
-module.exports = { initProfile };
+export { initProfile };
