@@ -1,6 +1,6 @@
-const fs = require('fs-extra');
-const path = require('path');
-const chalk = require('chalk');
+import fs from 'fs-extra';
+import path from 'path';
+import chalk from 'chalk';
 
 async function createApp(name, options) {
   const { template, dir } = options;
@@ -221,4 +221,4 @@ function createDashboardTemplate(name, title) {
 </html>`;
 }
 
-module.exports = { createApp };
+export { createApp };
