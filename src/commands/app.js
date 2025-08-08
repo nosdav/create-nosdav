@@ -43,10 +43,9 @@ async function createApp(name, options) {
       assets: './assets/'
     };
 
-    const appHtml = await loadTemplate(template, { name, title: appJson.title });
+    await copyTemplate(template, appDir, { name, title: appJson.title });
 
     await fs.writeJson(path.join(appDir, 'app.json'), appJson, { spaces: 2 });
-    await fs.writeFile(path.join(appDir, 'index.html'), appHtml);
 
     await registerApp(profileDir, name, appDir);
 
@@ -74,21 +73,45 @@ async function registerApp(profileDir, appName, appDir) {
   await fs.writeJson(publicTypeIndexPath, publicTypeIndex, { spaces: 2 });
 }
 
-async function loadTemplate(templateName, variables) {
-  const templatePath = join(__dirname, '../../templates', `${templateName}.html`);
+async function copyTemplate(templateName, targetDir, variables) {
+  const templateDir = join(__dirname, '../../templates', templateName);
   
   try {
-    let templateContent = await fs.readFile(templatePath, 'utf8');
-    
-    // Simple variable substitution
-    for (const [key, value] of Object.entries(variables)) {
-      templateContent = templateContent.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    // Check if template directory exists
+    if (!await fs.pathExists(templateDir)) {
+      throw new Error(`Template ${templateName} not found`);
     }
     
-    return templateContent;
+    // Copy all files from template directory to target directory
+    await copyTemplateFiles(templateDir, targetDir, variables);
   } catch (error) {
-    console.error(chalk.red(`Error loading template ${templateName}:`), error.message);
+    console.error(chalk.red(`Error copying template ${templateName}:`), error.message);
     throw error;
+  }
+}
+
+async function copyTemplateFiles(sourceDir, targetDir, variables) {
+  const files = await fs.readdir(sourceDir, { withFileTypes: true });
+  
+  for (const file of files) {
+    const sourcePath = join(sourceDir, file.name);
+    const targetPath = join(targetDir, file.name);
+    
+    if (file.isDirectory()) {
+      // Recursively copy directories
+      await fs.ensureDir(targetPath);
+      await copyTemplateFiles(sourcePath, targetPath, variables);
+    } else {
+      // Copy and process file
+      let content = await fs.readFile(sourcePath, 'utf8');
+      
+      // Simple variable substitution
+      for (const [key, value] of Object.entries(variables)) {
+        content = content.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      }
+      
+      await fs.writeFile(targetPath, content);
+    }
   }
 }
 
