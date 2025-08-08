@@ -3,6 +3,9 @@ import path from 'path';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
+import { execSync } from 'child_process';
+import os from 'os';
+import crypto from 'crypto';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -43,7 +46,8 @@ async function createApp(name, options) {
       assets: './assets/'
     };
 
-    await copyTemplate(template, appDir, { name, title: appJson.title });
+    const templateDir = await resolveTemplate(template);
+    await copyTemplateFiles(templateDir, appDir, { name, title: appJson.title });
 
     await fs.writeJson(path.join(appDir, 'app.json'), appJson, { spaces: 2 });
 
@@ -73,20 +77,95 @@ async function registerApp(profileDir, appName, appDir) {
   await fs.writeJson(publicTypeIndexPath, publicTypeIndex, { spaces: 2 });
 }
 
-async function copyTemplate(templateName, targetDir, variables) {
-  const templateDir = join(__dirname, '../../templates', templateName);
-  
+async function resolveTemplate(templateSpec) {
   try {
-    // Check if template directory exists
-    if (!await fs.pathExists(templateDir)) {
-      throw new Error(`Template ${templateName} not found`);
+    // Check if it's a Git template
+    if (isGitTemplate(templateSpec)) {
+      return await cloneGitTemplate(templateSpec);
     }
     
-    // Copy all files from template directory to target directory
-    await copyTemplateFiles(templateDir, targetDir, variables);
+    // Local template
+    const localTemplateDir = join(__dirname, '../../templates', templateSpec);
+    if (!await fs.pathExists(localTemplateDir)) {
+      throw new Error(`Local template ${templateSpec} not found`);
+    }
+    return localTemplateDir;
   } catch (error) {
-    console.error(chalk.red(`Error copying template ${templateName}:`), error.message);
+    console.error(chalk.red(`Error resolving template ${templateSpec}:`), error.message);
     throw error;
+  }
+}
+
+function isGitTemplate(templateSpec) {
+  return templateSpec.startsWith('github:') ||
+         templateSpec.startsWith('gh:') ||
+         templateSpec.startsWith('https://') ||
+         templateSpec.startsWith('git@') ||
+         templateSpec.includes('.git');
+}
+
+function parseGitTemplate(templateSpec) {
+  let url, ref;
+  
+  // Handle github: and gh: shortcuts
+  if (templateSpec.startsWith('github:') || templateSpec.startsWith('gh:')) {
+    const parts = templateSpec.split(':')[1].split('@');
+    const repo = parts[0];
+    ref = parts[1];
+    url = `https://github.com/${repo}.git`;
+  } else {
+    // Handle full URLs with optional @branch/tag
+    const parts = templateSpec.split('@');
+    url = parts[0];
+    ref = parts[1];
+  }
+  
+  return { url, ref };
+}
+
+async function cloneGitTemplate(templateSpec) {
+  const { url, ref } = parseGitTemplate(templateSpec);
+  
+  // Create cache directory
+  const cacheDir = join(os.homedir(), '.create-nosdav', 'cache');
+  await fs.ensureDir(cacheDir);
+  
+  // Generate cache key from URL + ref
+  const cacheKey = crypto.createHash('md5').update(`${url}@${ref}`).digest('hex');
+  const cachedPath = join(cacheDir, cacheKey);
+  
+  // Check if already cached
+  if (await fs.pathExists(cachedPath)) {
+    console.log(chalk.gray(`Using cached template: ${templateSpec}`));
+    return cachedPath;
+  }
+  
+  console.log(chalk.blue(`Cloning template: ${templateSpec}`));
+  
+  try {
+    // Clone the repository
+    const cloneCmd = ref ? 
+      `git clone --depth 1 --branch ${ref} "${url}" "${cachedPath}"` :
+      `git clone --depth 1 "${url}" "${cachedPath}"`;
+    
+    execSync(cloneCmd, {
+      stdio: 'pipe'
+    });
+    
+    // Remove .git directory to save space
+    const gitDir = join(cachedPath, '.git');
+    if (await fs.pathExists(gitDir)) {
+      await fs.remove(gitDir);
+    }
+    
+    console.log(chalk.green(`✓ Template cloned successfully`));
+    return cachedPath;
+  } catch (error) {
+    // Clean up failed clone
+    if (await fs.pathExists(cachedPath)) {
+      await fs.remove(cachedPath);
+    }
+    throw new Error(`Failed to clone template: ${error.message}`);
   }
 }
 
