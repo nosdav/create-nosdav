@@ -28,11 +28,6 @@ async function initProfile(name, options) {
       name: 'about',
       message: 'About (brief description):',
       default: 'NosDav user profile'
-    },
-    {
-      type: 'input',
-      name: 'nip05',
-      message: 'NIP-05 identifier (optional):'
     }
   ]);
 
@@ -50,7 +45,7 @@ async function initProfile(name, options) {
       name: answers.displayName,
       picture: `https://nosdav.net/${profileId}/public/images/thumb.png`,
       about: answers.about,
-      nip05: answers.nip05 || '',
+      nip05: '',
       subkeys: '',
       publicTypeIndex: './settings/publicTypeIndex.json',
       storage: [`https://nosdav.net/${profileId}/`],
