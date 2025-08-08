@@ -1,6 +1,6 @@
 {
   "name": "create-nosdav",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Create NosDav profiles and apps with ease",
   "type": "module",
   "bin": {
