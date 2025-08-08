@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{title}}</title>
+    <meta charset="utf-8">
+    <style>
+        body { font-family: system-ui; max-width: 800px; margin: 2rem auto; padding: 0 1rem; background: #f8fafc; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { color: #1e293b; margin: 0; }
+        .header p { color: #64748b; margin: 0.5rem 0; }
+        .todo-container { background: white; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+        .add-todo { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; }
+        .add-todo input { flex: 1; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 6px; font-size: 1rem; }
+        .add-todo input:focus { outline: none; border-color: #3b82f6; }
+        .add-todo button { padding: 0.75rem 1.5rem; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 500; }
+        .add-todo button:hover { background: #2563eb; }
+        .todo-list { list-style: none; padding: 0; margin: 0; }
+        .todo-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; }
+        .todo-item:last-child { border-bottom: none; }
+        .todo-checkbox { width: 20px; height: 20px; cursor: pointer; }
+        .todo-text { flex: 1; font-size: 1rem; color: #1e293b; }
+        .todo-text.completed { text-decoration: line-through; color: #64748b; }
+        .todo-delete { background: #ef4444; color: white; border: none; padding: 0.25rem 0.5rem; border-radius: 4px; cursor: pointer; font-size: 0.875rem; }
+        .todo-delete:hover { background: #dc2626; }
+        .empty-state { text-align: center; color: #64748b; padding: 2rem; font-style: italic; }
+        .stats { display: flex; justify-content: space-between; margin-top: 1rem; font-size: 0.875rem; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
+
+    <script type="module">
+        import { render } from 'https://cdn.skypack.dev/preact@10.19.3';
+        import { html } from 'https://cdn.skypack.dev/htm@3.1.1/preact';
+        import { TodoApp } from './components.js';
+
+        // Render the app
+        render(html`<${TodoApp} />`, document.getElementById('app'));
+    </script>
+</body>
+</html>
